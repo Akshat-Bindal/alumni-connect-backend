@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema(
     department: { type: String },
     batch: { type: String }, // e.g. 2021-2025
     company: { type: String }, // for alumni
-    profilePic: { type: String }, // will store Cloudinary URL or filename
+    profilePic: { type: String },// will store Cloudinary URL or filename
+    profilePicId: { type: String }, 
 
     // Social
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

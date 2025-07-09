@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import cloudinary from '../config/cloudinary.js';
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -89,6 +90,50 @@ export const updateUserProfile = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: 'Update failed' });
+  }
+};
+
+export const uploadProfilePic = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    // 1. Delete old image if it exists
+    if (user.profilePicId) {
+      await cloudinary.uploader.destroy(user.profilePicId);
+    }
+
+    // 2. Save new Cloudinary image
+    user.profilePic = req.file.path; // URL
+    user.profilePicId = req.file.filename; // public_id
+
+    await user.save();
+
+    res.json({
+      message: 'Profile picture updated successfully',
+      profilePic: user.profilePic
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Upload failed', error: err.message });
+  }
+};
+
+
+export const deleteProfilePic = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user.profilePicId) {
+      await cloudinary.uploader.destroy(user.profilePicId);
+    }
+
+    user.profilePic = null;
+    user.profilePicId = null;
+
+    await user.save();
+
+    res.json({ message: 'Profile picture deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Delete failed', error: err.message });
   }
 };
 
